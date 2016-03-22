@@ -3,28 +3,29 @@
     export class AccountService {
 
         // Store access token and claims in browser session storage
-        storeUserInfo(userInfo) {
-            // store auth token
-            this.$window.sessionStorage.setItem('token', userInfo.access_token);
+        private storeUserInfo(userInfo) {
+            // store user name
+            this.$window.sessionStorage.setItem('userName', userInfo.userName);
+
             // store claims
-            for (let prop in userInfo) {
-                if (prop.indexOf('claim_') == 0) {
-                    this.$window.sessionStorage.setItem(prop, userInfo[prop]);
-                }
-            }
+            this.$window.sessionStorage.setItem('claims', JSON.stringify(userInfo.claims));
         }
 
-        getClaim(type) {
-            return this.$window.sessionStorage.getItem('claim_' + type);
+        public getUserName() {
+            return this.$window.sessionStorage.getItem('userName');
         }
 
 
-        login(loginUser) {
+        public getClaim(type) {
+            var allClaims = JSON.parse(this.$window.sessionStorage.getItem('claims'));
+            return allClaims ? allClaims[type] : null;
+        }
+
+
+        public login(loginUser) {
             return this.$q((resolve, reject) => {
                 this.$http.post('/api/account/login', loginUser).then((result) => {
-                        //this.storeUserInfo(result);
-                        // redirect to home
-                    debugger;
+                        this.storeUserInfo(result.data);
                         resolve();
                 }).catch((result) => {
                     var messages = this.flattenValidation(result.data);
@@ -33,10 +34,11 @@
             });
         }
 
-        register(userLogin) {
+        public register(userLogin) {
             return this.$q((resolve, reject) => {
                 this.$http.post('/api/account/register', userLogin)
                     .then((result) => {
+                        this.storeUserInfo(result.data);
                         resolve(result);
                     })
                     .catch((result) => {
@@ -47,13 +49,16 @@
         }
 
 
-        logout() {
+        public logout() {
             // clear all of session storage (including claims)
             this.$window.sessionStorage.clear();
+
+            // logout on the server
+            return this.$http.post('/api/account/logout', null);
         }
 
-        isLoggedIn() {
-            return this.$window.sessionStorage.getItem('token');
+        public isLoggedIn() {
+            return this.$window.sessionStorage.getItem('userName');
         }
 
         // associate external login (e.g., Twitter) with local user account 
@@ -74,23 +79,7 @@
             });
         }
 
-        // get email, registration status, and provider for current user 
-        getUserInfo(externalAccessToken) {
-            return this.$q((resolve, reject) => {
-                this.$http.get('/api/account/userinfo', { headers: { Authorization: 'Bearer ' + externalAccessToken } })
-                    .then((result) => {
-                        resolve(result.data);
-                    })
-                    .catch((result) => {
-                        // flatten error messages
-                        let messages = [];
-                        for (let prop in result.data.modelState) {
-                            messages = messages.concat(result.data.modelState[prop]);
-                        }
-                        return messages;
-                    });
-            });
-        }
+     
 
         getExternalLogins(): ng.IPromise<{}> {
             return this.$q((resolve, reject) => {

@@ -2,3 +2,10 @@
 <ul>
     <li ng-repeat="secret in controller.secrets">{{secret}}</li>
 </ul>
+
+
+{{account.getClaim('CanEditProducts')}}
+
+<div ng-if="account.getClaim('canEditProducts')">
+    <h1>Can Edit</h1>
+</div>

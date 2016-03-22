@@ -3,6 +3,9 @@
     export class AccountController {
         public externalLogins;
 
+        public getUserName() {
+            return this.accountService.getUserName();
+        }
 
         public getClaim(type) {
             return this.accountService.getClaim(type);
@@ -21,9 +24,9 @@
         }
 
         constructor(private accountService: Security.Services.AccountService, private $location: ng.ILocationService) {
-            this.getExternalLogins().then((results) => {
-                this.externalLogins = results;
-            });
+            //this.getExternalLogins().then((results) => {
+            //    this.externalLogins = results;
+            //});
         }
     }
 
@@ -69,14 +72,14 @@
             // if the user is already registered then redirect home else register
             let response = accountService.parseOAuthResponse($location.hash());
             let externalAccessToken = response['access_token'];
-            accountService.getUserInfo(externalAccessToken).then((userInfo: any) => {
-                if (userInfo.hasRegistered) {
-                    accountService.storeUserInfo(response);
-                    $location.path('/');
-                } else {
-                    $location.path('/externalRegister');
-                }
-            });
+            //accountService.getUserInfo(externalAccessToken).then((userInfo: any) => {
+            //    if (userInfo.hasRegistered) {
+            //        accountService.storeUserInfo(response);
+            //        $location.path('/');
+            //    } else {
+            //        $location.path('/externalRegister');
+            //    }
+            //});
         }
     }
 

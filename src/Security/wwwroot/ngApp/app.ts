@@ -56,7 +56,6 @@ namespace Security {
                 return config;
             },
             responseError: function (rejection) {
-                debugger;
                 if (rejection.status === 401) {
                     $location.path('/login');
                 }

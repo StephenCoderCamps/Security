@@ -39,15 +39,18 @@ namespace Security.Controllers
             _logger = loggerFactory.CreateLogger<AccountController>();
         }
 
-        //
-        // GET: /Account/Login
-        //[HttpGet]
-        //[AllowAnonymous]
-        //public IActionResult Login(string returnUrl = null)
-        //{
-        //    ViewData["ReturnUrl"] = returnUrl;
-        //    return View();
-        //}
+
+        private async Task<UserViewModel> GetUser(string userName)
+        {
+            var user = await _userManager.FindByNameAsync(userName);
+            var claims = await _userManager.GetClaimsAsync(user);
+            var vm = new UserViewModel
+            {
+                UserName = user.UserName,
+                Claims = claims.ToDictionary(c => c.Type, c => c.Value)
+            };
+            return vm;
+        }
 
         //
         // POST: /Account/Login
@@ -64,7 +67,8 @@ namespace Security.Controllers
                 if (result.Succeeded)
                 {
                     _logger.LogInformation(1, "User logged in.");
-                    return RedirectToLocal(returnUrl);
+                    var user = await GetUser(model.Email);
+                    return Ok(user);
                 }
                 if (result.RequiresTwoFactor)
                 {
@@ -87,14 +91,6 @@ namespace Security.Controllers
             return HttpBadRequest(this.ModelState);
         }
 
-        ////
-        //// GET: /Account/Register
-        //[HttpGet]
-        //[AllowAnonymous]
-        //public IActionResult Register()
-        //{
-        //    return View();
-        //}
 
         //
         // POST: /Account/Register
@@ -116,7 +112,8 @@ namespace Security.Controllers
                     //    "Please confirm your account by clicking this link: <a href=\"" + callbackUrl + "\">link</a>");
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     _logger.LogInformation(3, "User created a new account with password.");
-                    return Ok();
+                    var userViewModel = await GetUser(user.UserName);
+                    return Ok(userViewModel);
                 }
                 AddErrors(result);
             }
@@ -127,13 +124,12 @@ namespace Security.Controllers
 
         //
         // POST: /Account/LogOff
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> LogOff()
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation(4, "User logged out.");
-            return RedirectToAction(nameof(HomeController.Index), "Home");
+            return Ok();
         }
 
         //
