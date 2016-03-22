@@ -24,9 +24,9 @@
         }
 
         constructor(private accountService: Security.Services.AccountService, private $location: ng.ILocationService) {
-            //this.getExternalLogins().then((results) => {
-            //    this.externalLogins = results;
-            //});
+            this.getExternalLogins().then((results) => {
+                this.externalLogins = results;
+            });
         }
     }
 
@@ -85,23 +85,19 @@
 
 
     export class ExternalRegisterController {
-        private externalAccessToken;
         public registerUser;
         public validationMessages;
 
         public register() {
-            this.accountService.registerExternal(this.registerUser.email, this.externalAccessToken)
+            this.accountService.registerExternal(this.registerUser.email)
                 .then((result) => {
-                    this.$location.path('/login');
+                    this.$location.path('/');
                 }).catch((result) => {
                     this.validationMessages = result;
                 });
         }
 
-        constructor(private accountService: Security.Services.AccountService, private $location: ng.ILocationService) {
-            let response = accountService.parseOAuthResponse($location.hash());
-            this.externalAccessToken = response['access_token'];
-        }
+        constructor(private accountService: Security.Services.AccountService, private $location: ng.ILocationService) {}
 
     }
 

@@ -132,11 +132,22 @@ namespace Security.Controllers
             return Ok();
         }
 
+
+        // GET api/Account/ExternalLogins?returnUrl=%2F&generateState=true
+        [AllowAnonymous]
+        [HttpGet("GetExternalLogins")]
+        public IEnumerable<ExternalLogin> GetExternalLogins()
+        {
+            return _signInManager.GetExternalAuthenticationSchemes().Select(a => new ExternalLogin {
+                DisplayName = a.DisplayName,
+                AuthenticationScheme = a.AuthenticationScheme
+            });
+        }
+
         //
         // POST: /Account/ExternalLogin
-        [HttpPost]
+        [HttpGet("ExternalLogin")]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
         public IActionResult ExternalLogin(string provider, string returnUrl = null)
         {
             // Request a redirect to the external login provider.
@@ -147,7 +158,7 @@ namespace Security.Controllers
 
         //
         // GET: /Account/ExternalLoginCallback
-        [HttpGet]
+        [HttpGet("ExternalLoginCallback")]
         [AllowAnonymous]
         public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null)
         {
@@ -178,16 +189,16 @@ namespace Security.Controllers
                 ViewData["ReturnUrl"] = returnUrl;
                 ViewData["LoginProvider"] = info.LoginProvider;
                 var email = info.ExternalPrincipal.FindFirstValue(ClaimTypes.Email);
-                return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = email });
+                return RedirectToLocal("/externalRegister");
+                //return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = email });
             }
         }
 
         //
         // POST: /Account/ExternalLoginConfirmation
-        [HttpPost]
+        [HttpPost("ExternalLoginConfirmation")]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnUrl = null)
+        public async Task<IActionResult> ExternalLoginConfirmation([FromBody]ExternalLoginConfirmationViewModel model, string returnUrl = null)
         {
             if (User.IsSignedIn())
             {
@@ -200,7 +211,9 @@ namespace Security.Controllers
                 var info = await _signInManager.GetExternalLoginInfoAsync();
                 if (info == null)
                 {
-                    return View("ExternalLoginFailure");
+                    ModelState.AddModelError("", "ExternalLoginFailure");
+                    return HttpBadRequest(this.ModelState);
+                    //return View("ExternalLoginFailure");
                 }
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
                 var result = await _userManager.CreateAsync(user);
@@ -211,14 +224,15 @@ namespace Security.Controllers
                     {
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         _logger.LogInformation(6, "User created an account using {Name} provider.", info.LoginProvider);
-                        return RedirectToLocal(returnUrl);
+                        var userViewModel = await GetUser(user.UserName);
+                        return Ok(userViewModel);
                     }
                 }
                 AddErrors(result);
             }
 
-            ViewData["ReturnUrl"] = returnUrl;
-            return View(model);
+           // ViewData["ReturnUrl"] = returnUrl;
+            return HttpBadRequest(this.ModelState);
         }
 
         // GET: /Account/ConfirmEmail

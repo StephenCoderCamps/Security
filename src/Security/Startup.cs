@@ -15,6 +15,7 @@ using Newtonsoft.Json.Serialization;
 using Microsoft.AspNet.Authentication.Cookies;
 using System.Net;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Authentication.Twitter;
 
 namespace Security
 {
@@ -109,6 +110,13 @@ namespace Security
             app.UseIdentity();
 
             // To configure external authentication please see http://go.microsoft.com/fwlink/?LinkID=532715
+
+
+            app.UseTwitterAuthentication(new TwitterOptions
+            {
+                ConsumerKey = "3TDe2Gu0hMpC8JXW8PcDF9ztw",
+                ConsumerSecret = "LxRsXPrJHXPmUEHxi8AQc2A4fR1eEGCHBWL9K2xwHLGZnSJ15e"
+            });
 
             app.UseMvc(routes =>
             {

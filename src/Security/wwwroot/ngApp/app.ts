@@ -31,6 +31,12 @@ namespace Security {
                 controller: Security.Controllers.RegisterController,
                 controllerAs: 'controller'
             })
+            .state('externalRegister', {
+                url: '/externalRegister',
+                templateUrl: '/ngApp/views/externalRegister.html',
+                controller: Security.Controllers.ExternalRegisterController,
+                controllerAs: 'controller'
+            })
             .state('notFound', {
                 url: '/notFound',
                 templateUrl: '/ngApp/views/notFound.html'

@@ -62,18 +62,16 @@
         }
 
         // associate external login (e.g., Twitter) with local user account 
-        registerExternal(email, token) {
+        public registerExternal(email) {
             return this.$q((resolve, reject) => {
-                this.$http.post('/api/account/registerExternal', { email: email }, { headers: { Authorization: 'Bearer ' + token } })
+                this.$http.post('/api/account/externalLoginConfirmation', { email: email })
                     .then((result) => {
+                        this.storeUserInfo(result.data);
                         resolve(result);
                     })
                     .catch((result) => {
                         // flatten error messages
-                        let messages = [];
-                        for (let prop in result.data.modelState) {
-                            messages = messages.concat(result.data.modelState[prop]);
-                        }
+                        let messages = this.flattenValidation(result.data);
                         reject(messages);
                     });
             });
@@ -83,7 +81,7 @@
 
         getExternalLogins(): ng.IPromise<{}> {
             return this.$q((resolve, reject) => {
-                let url = `api/Account/ExternalLogins?returnUrl=%2FexternalLogin&generateState=true`;
+                let url = `api/Account/getExternalLogins?returnUrl=%2FexternalLogin&generateState=true`;
                 this.$http.get(url).then((result: any) => {
                     resolve(result.data);
                 }).catch((result) => {

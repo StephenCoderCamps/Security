@@ -3,7 +3,7 @@
 
     <ul>
         <li ng-repeat="externalLogin in account.externalLogins">
-            <a target="_self" href="{{externalLogin.url}}">{{externalLogin.name}}</a>
+            <a target="_self" href="/api/account/ExternalLogin?provider={{externalLogin.authenticationScheme}}&returnUrl=/">{{externalLogin.displayName}}</a>
         </li>
     </ul>
 
